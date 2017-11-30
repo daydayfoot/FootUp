@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qlqn.bean.SysPermissionBean">
+	<resultMap id="BaseResultMap" type="com.qlqn.bean.SysPermissionBean">
+		<id column="ID" property="id" jdbcType="BIGINT" />
+		<result column="MYSELF_ID" property="myselfId" jdbcType="VARCHAR" />
+		<result column="NAME" property="name" jdbcType="VARCHAR" />
+		<result column="TYPE" property="type" jdbcType="BIGINT" />
+		<result column="PATH_URL" property="pathUrl" jdbcType="VARCHAR" />
+		<result column="ICON_URL" property="iconUrl" jdbcType="VARCHAR" />
+		<result column="SEQUENCE_NUM" property="sequenceNum" jdbcType="BIGINT" />
+		<result column="STATE" property="state" jdbcType="BIGINT" />
+		<result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+		<result column="PARENT_ID" property="parentId" jdbcType="VARCHAR" />
+		<result column="LEVEL" property="level" jdbcType="BIGINT" />
+		<result column="SYSTEM_IDENTIFYING" property="systemIdentifying" jdbcType="VARCHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CREATER" property="creater" jdbcType="VARCHAR" />
+		<result column="MODIFIER" property="modifier" jdbcType="VARCHAR" />
+		<result column="MODIFY_TIME" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="DEL_USER" property="delUser" jdbcType="VARCHAR" />
+		<result column="DEL_TIME" property="delTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<select id="selectPermissionByRoleId" resultType="com.qlqn.bean.SysPermissionBeanBo">
+		<!-- mysql 5.6 -->
+		select * ,ifnull(ur.id,0) marker ,ur.id roleId
+		from (
+		SELECT upt.ID,
+		upt.NAME,
+		upt.PATH_URL,
+		upt.MYSELF_ID myselfId,
+		upt.TYPE type,
+		upt.ICON_URL iconUrl,
+		upt.LEVEL level,
+		upt.STATE state,
+		upt.PARENT_ID parentId
+		from sys_permission upt
+		RIGHT JOIN sys_role_permission urpt on urpt.pid = upt.ID
+		RIGHT JOIN (select id from sys_role where id
+		=#{loginUserRoleId,jdbcType=BIGINT}) urt on urt.id = urpt.rid
+		where 1=1 and upt.STATE='1' and upt.type in(1,3)
+		) up
+		left join sys_role_permission urp on urp.pid = up.ID
+		left join (select id from sys_role where id =#{id,jdbcType=BIGINT}) ur on
+		ur.id = urp.rid
+		where 1=1 and up.STATE='1'
+		group by up.ID
+
+	</select>
+
+</mapper>

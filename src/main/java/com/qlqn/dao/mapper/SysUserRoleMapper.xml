@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qlqn.bean.SysUserRoleBean">
+	<resultMap id="BaseResultMap" type="com.qlqn.bean.SysUserRoleBean">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="uid" property="uid" jdbcType="BIGINT" />
+		<result column="rid" property="rid" jdbcType="BIGINT" />
+	</resultMap>
+	<insert id="insert" parameterType="com.qlqn.bean.SysUserRoleBean">
+		insert into sys_user_role (uid, rid)
+		values (#{uid,jdbcType=BIGINT}, #{rid,jdbcType=BIGINT})
+	</insert>
+	<insert id="insertSelective" parameterType="com.qlqn.bean.SysUserRoleBean">
+		insert into sys_user_role
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="uid != null">
+				uid,
+			</if>
+			<if test="rid != null">
+				rid,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="uid != null">
+				#{uid,jdbcType=BIGINT},
+			</if>
+			<if test="rid != null">
+				#{rid,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	<delete id="deleteByUserId">
+		delete from sys_user_role where uid = #{id,jdbcType=BIGINT}
+	</delete>
+	<!-- 根据用户roleId查询用户ID -->
+	<select id="findUserIdByRoleId" resultType="java.lang.Long">
+		select uid from sys_user_role where rid = #{id,jdbcType=BIGINT}
+	</select>
+	<!-- 根据用户用户ID查询 roleId -->
+	<select id="findRoleByUserId" resultType="java.lang.Long">
+		select rid from sys_user_role where uid = #{id,jdbcType=BIGINT}
+	</select>
+
+</mapper>

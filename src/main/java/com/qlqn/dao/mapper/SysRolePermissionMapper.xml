@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qlqn.bean.SysRolePermissionBean">
+	<resultMap id="BaseResultMap" type="com.qlqn.bean.SysRolePermissionBean">
+		<result column="id" property="id" jdbcType="BIGINT" />
+		<result column="rid" property="rid" jdbcType="BIGINT" />
+		<result column="pid" property="pid" jdbcType="BIGINT" />
+	</resultMap>
+	<insert id="insert" parameterType="com.qlqn.bean.SysRolePermissionBean">
+		insert into
+		sys_role_permission (id, rid, pid)
+		values (#{id,jdbcType=BIGINT},
+		#{rid,jdbcType=BIGINT},
+		#{pid,jdbcType=BIGINT})
+	</insert>
+	<insert id="insertSelective" parameterType="com.qlqn.bean.SysRolePermissionBean">
+		insert into sys_role_permission
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="rid != null">
+				rid,
+			</if>
+			<if test="pid != null">
+				pid,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="rid != null">
+				#{rid,jdbcType=BIGINT},
+			</if>
+			<if test="pid != null">
+				#{pid,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	<delete id="deleteByRoleId">
+		delete from sys_role_permission where rid =
+		#{id,jdbcType=BIGINT}
+	</delete>
+</mapper>

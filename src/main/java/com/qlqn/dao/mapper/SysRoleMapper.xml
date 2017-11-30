@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qlqn.bean.SysRoleBean">
+	<resultMap id="BaseResultMap" type="com.qlqn.bean.SysRoleBean">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="modifler" property="modifler" jdbcType="VARCHAR" />
+		<result column="is_del" jdbcType="VARCHAR" property="isDel" />
+		<result column="del_user" property="delUser" jdbcType="VARCHAR" />
+		<result column="instiution_id" property="instiutionId"
+			jdbcType="BIGINT" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, name, description, type, create_time, creator, modify_time, modifler,
+		is_del,
+		del_user, del_time, instiution_id
+	</sql>
+	<!-- 删除角色时 ，查看该角色下是否有可用账户，有：删除。 无：不能删除 -->
+	<!-- <select id="selectUserByRoleId" resultType="java.lang.Integer"> -->
+	<!-- SELECT COUNT(1) FROM ( -->
+	<!-- SELECT u.id,u.uname,u.name,u.status FROM sys_user u -->
+	<!-- LEFT JOIN sys_user_role uur ON uur.uid = u.id -->
+	<!-- WHERE 1 = 1 AND u.is_del = '0' AND u.status = '0' -->
+	<!-- and uur.rid=#{id,jdbcType=BIGINT} -->
+	<!-- ) DATA -->
+	<!-- </select> -->
+	<!-- 选择角色给用户 ，checkbox 列表 -->
+	<!-- <select id="selectRoleByUserId" resultType="com.qlqn.bean.SysRoleBeanBo"> -->
+	<!-- select ur.id,ur.name,ur.type,ifnull(uu.id,0) marker,uu.id userId from 
+		sys_role ur -->
+	<!-- left join sys_user_role uur on uur.rid = ur.id -->
+	<!-- left join (select id from sys_user where id =#{id,jdbcType=BIGINT}) 
+		uu on uu.id = uur.uid -->
+	<!-- where 1=1 and ur.is_del='0' -->
+	<!-- group by ur.id -->
+	<!-- </select> -->
+	<!-- 根据用ID查询role -->
+	<select id="findRoleByUserId" resultType="java.lang.String">
+		select r.id from sys_role r,sys_user_role ur where ur.rid = r.id and ur.uid
+		= #{id,jdbcType=BIGINT} and r.is_del='0' 
+	</select>
+
+	<select id="findRole" parameterType="java.util.Map"
+		resultType="com.qlqn.bean.SysRoleListBean">
+		select * from (
+		select r.id,r.name,r.type,r.description,r.create_time
+		createTime,r.modify_time modifyTime, r.instiution_id instiutionId,
+		group_concat(ps.NAME) psNames,group_concat(ps.ID)psIds
+		from sys_role r
+		left join sys_role_permission rp on rp.rid = r.id
+		left join sys_permission ps on ps.ID = rp.pid
+
+		where 1=1 and r.is_del='0' and r.type='1'
+
+		<!-- <if test=" null != startDate and '' != startDate" > -->
+		<!-- and DATE_FORMAT(create_time,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d') -->
+		<!-- </if> -->
+		<!-- <if test=" null != endDate and '' != endDate" > -->
+		<!-- and DATE_FORMAT(#{endDate},'%Y-%m-%d') >= DATE_FORMAT(create_time,'%Y-%m-%d') -->
+		<!-- </if> -->
+		<if test=" null != instiutionId and '' != instiutionId">
+			and instiution_id= #{instiutionId,jdbcType=BIGINT}
+		</if>
+		<if test=" null!=searchContent and ''!=searchContent">
+			and ( r.name like CONCAT('%',#{searchContent},'%')
+			or r.description like CONCAT('%',#{searchContent},'%')
+<!-- 			or r.creator like CONCAT('%',#{searchContent},'%') -->
+			)
+		</if>
+		group by r.id ORDER BY r.create_time DESC ) roleList
+	</select>
+	<select id="findRoleByInstitutionId" resultType="com.qlqn.bean.SysRoleBean">
+		select id, name from sys_role where 1=1 and is_del='0' and type='1'
+		<if test=" null != institutionName and '' != institutionName">
+			and instiution_id= #{institutionId,jdbcType=BIGINT}
+		</if>
+	</select>
+	<select id="findRoleByInstitutionId2" resultType="com.qlqn.bean.SysRoleBean">
+		select id, name from sys_role where 1=1 and is_del='0' and type='1'
+		<if test=" institutionId.toString() !='0' ">
+			and instiution_id= #{institutionId,jdbcType=BIGINT}
+		</if>
+	</select>
+
+	<select id="getRoleByName" resultType="java.lang.Integer">
+		select COUNT(*) from sys_role where 1=1 and is_del='0'  and type='1'
+		and instiution_id= #{instiutionId,jdbcType=BIGINT}
+		and name= #{name,jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectByPrimaryKey" parameterType="java.lang.Long"
+		resultType="com.qlqn.bean.SysRoleListBean">
+		select r.id,r.name,r.type,r.description,r.create_time createTime,
+		group_concat(ps.name) psNames,group_concat(ps.id)psIds
+		from sys_role r
+		left join sys_role_permission rp on rp.rid = r.id
+		left join sys_permission ps on ps.id = rp.pid
+		where r.id = #{id,jdbcType=BIGINT} and r.is_del='0'  and r.type='1'
+	</select>
+	<insert id="insert" parameterType="com.qlqn.bean.SysRoleBean">
+		insert into sys_role (id, name, description,
+		type, create_time, creator,
+		modify_time, modifler, is_del,
+		del_user, del_time, instiution_id
+		)
+		values (#{id,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{type,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{creator,jdbcType=VARCHAR},
+		#{modifyTime,jdbcType=TIMESTAMP}, #{modifler,jdbcType=VARCHAR},
+		#{isDel,jdbcType=VARCHAR},
+		#{delUser,jdbcType=VARCHAR}, #{delTime,jdbcType=TIMESTAMP}, #{instiutionId,jdbcType=BIGINT}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="com.qlqn.bean.SysRoleBean">
+		insert into sys_role
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="name != null">
+				name,
+			</if>
+			<if test="description != null">
+				description,
+			</if>
+			<if test="type != null">
+				type,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="creator != null">
+				creator,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="modifler != null">
+				modifler,
+			</if>
+			<if test="isDel != null">
+				is_del,
+			</if>
+			<if test="delUser != null">
+				del_user,
+			</if>
+			<if test="delTime != null">
+				del_time,
+			</if>
+			<if test="instiutionId != null">
+				instiution_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				#{description,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null">
+				#{type,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="creator != null">
+				#{creator,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifler != null">
+				#{modifler,jdbcType=VARCHAR},
+			</if>
+			<if test="isDel != null">
+				#{isDel,jdbcType=VARCHAR},
+			</if>
+			<if test="delUser != null">
+				#{delUser,jdbcType=VARCHAR},
+			</if>
+			<if test="delTime != null">
+				#{delTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="instiutionId != null">
+				#{instiutionId,jdbcType=BIGINT},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.qlqn.bean.SysRoleBean">
+		update sys_role
+		<set>
+			<if test="name != null">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="description != null">
+				description = #{description,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null">
+				type = #{type,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="creator != null">
+				creator = #{creator,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifler != null">
+				modifler = #{modifler,jdbcType=VARCHAR},
+			</if>
+			<if test="isDel != null">
+				is_del = #{isDel,jdbcType=VARCHAR},
+			</if>
+			<if test="delUser != null">
+				del_user = #{delUser,jdbcType=VARCHAR},
+			</if>
+			<if test="delTime != null">
+				del_time = #{delTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="instiutionId != null">
+				instiution_id = #{instiutionId,jdbcType=BIGINT},
+			</if>
+		</set>
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.qlqn.bean.SysRoleBean">
+		update sys_role
+		set name = #{name,jdbcType=VARCHAR},
+		description = #{description,jdbcType=VARCHAR},
+		type = #{type,jdbcType=VARCHAR},
+		create_time = #{createTime,jdbcType=TIMESTAMP},
+		creator = #{creator,jdbcType=VARCHAR},
+		modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+		modifler = #{modifler,jdbcType=VARCHAR},
+		is_del = #{isDel,jdbcType=VARCHAR},
+		del_user = #{delUser,jdbcType=VARCHAR},
+		del_time = #{delTime,jdbcType=TIMESTAMP},
+		instiution_id = #{instiutionId,jdbcType=BIGINT}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+</mapper>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:jee="http://www.springframework.org/schema/jee" 
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd"
+        default-lazy-init="true">
+
+
+    <!-- 启用注解 -->
+	<context:annotation-config />
+	
+	<context:component-scan base-package="com.qlqn">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	
+	<!-- 配置文件+数据源 开始 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:db.properties</value>
+			</list>
+		</property>
+	</bean>
+
+
+<!-- data source 抽象类 -->  
+<!-- 	<bean id="dataSource" class="com.qlqn.common.dataSwitch.DynamicDataSource">   -->
+<!-- 	    <property name="targetDataSources">   -->
+<!-- 	        <map key-type="java.lang.String">   -->
+<!-- 	            <entry value-ref="dtsDB" key="dtsDB"></entry>   -->
+<!-- 	            <entry value-ref="wxCreditDB" key="wxCreditDB"></entry>   -->
+<!-- 	        </map>   -->
+<!-- 	    </property>   -->
+	<!--     默认数据源   -->
+<!-- 	    <property name="defaultTargetDataSource" ref="ftsDB"></property> -->
+<!-- 	</bean>   -->
+
+
+	<!-- 配置数据源 -->
+	<bean name="dataSource" class="com.qlqn.common.datasource.AtiDruidDataSource"
+		init-method="init" destroy-method="close">
+		<property name="driverClassName" value="${db.footup.driver}" /> 
+		<property name="url" value="${db.footup.url}" />
+		<property name="username" value="${db.footup.username}" />
+		<property name="password" value="${db.footup.password}" />
+		<!-- 初始化连接大小 -->
+		<property name="initialSize" value="0" />
+		<!-- 连接池最大使用连接数量 -->
+		<property name="maxActive" value="20" />
+		<!-- 连接池最大空闲 -->
+		<!-- <property name="maxIdle" value="20" /> -->
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="0" />
+		<!-- 获取连接最大等待时间 -->
+		<property name="maxWait" value="60000" />
+		<!-- <property name="poolPreparedStatements" value="true" /> <property 
+			name="maxPoolPreparedStatementPerConnectionSize" value="33" /> -->
+		<property name="validationQuery" value="${db.footup.validationQuery}" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="testWhileIdle" value="true" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="25200000" />
+		<!-- 打开removeAbandoned功能 -->
+		<property name="removeAbandoned" value="true" />
+		<!-- 1800秒，也就是30分钟 -->
+		<property name="removeAbandonedTimeout" value="1800" />
+		<!-- 关闭abanded连接时输出错误日志 -->
+		<property name="logAbandoned" value="true" />
+		<!-- 监控数据库 -->
+		<!-- <property name="filters" value="stat" /> -->
+		<property name="filters" value="mergeStat" />
+	</bean>
+		<!--平台数据库配置 -->
+<!-- 	<bean id="wxCreditDB" class="com.qlqn.common.datasource.AtiDruidDataSource" init-method="init" destroy-method="close">   -->
+<!--        			<property name="driverClassName" value="${db.driver}" />  -->
+<!-- 				<property name="url" value="${db.url}" /> -->
+<!-- 				<property name="username" value="${db.username}" /> -->
+<!-- 				<property name="password" value="${db.password}" /> -->
+<!-- 				初始化连接大小 -->
+<!-- 				<property name="initialSize" value="0" /> -->
+<!-- 				连接池最大使用连接数量 -->
+<!-- 				<property name="maxActive" value="20" /> -->
+<!-- 				连接池最大空闲 -->
+<!-- 				<property name="maxIdle" value="20" /> -->
+<!-- 				连接池最小空闲 -->
+<!-- 				<property name="minIdle" value="0" /> -->
+<!-- 				获取连接最大等待时间 -->
+<!-- 				<property name="maxWait" value="60000" /> -->
+<!-- 				<property name="poolPreparedStatements" value="true" /> <property --> 
+<!-- 					name="maxPoolPreparedStatementPerConnectionSize" value="33" /> --> 
+<!-- 				<property name="validationQuery" value="${db.validationQuery}" /> -->
+<!-- 				<property name="testOnBorrow" value="false" /> -->
+<!-- 				<property name="testOnReturn" value="false" /> -->
+<!-- 				<property name="testWhileIdle" value="true" /> -->
+<!-- 				配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+<!-- 				<property name="timeBetweenEvictionRunsMillis" value="60000" /> -->
+<!-- 				配置一个连接在池中最小生存的时间，单位是毫秒 -->
+<!-- 				<property name="minEvictableIdleTimeMillis" value="25200000" /> -->
+<!-- 				打开removeAbandoned功能 -->
+<!-- 				<property name="removeAbandoned" value="true" /> -->
+<!-- 				1800秒，也就是30分钟 -->
+<!-- 				<property name="removeAbandonedTimeout" value="1800" /> -->
+<!-- 				关闭abanded连接时输出错误日志 -->
+<!-- 				<property name="logAbandoned" value="true" /> -->
+<!-- 				监控数据库 -->
+<!-- 				<property name="filters" value="stat" /> -->
+<!-- 				<property name="filters" value="mergeStat" /> -->
+<!--   	</bean> -->
+	
+	<!-- 配置MyBatis SessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+       <property name="mapperLocations"
+			value="classpath:com/qlqn/dao/mapper/*Mapper.xml" />
+		<property name="typeAliasesPackage" value="com.qlqn.bean" />
+		<!-- 指定sqlMapConfig总配置文件，订制的environment在spring容器中不在生效 -->
+		<property name="configLocation" value="classpath:mybatis-conf.xml" />
+    </bean>
+	
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate"
+		scope="prototype">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+		<constructor-arg index="1" value="REUSE" />
+	</bean>
+
+	<bean id="dynamicSqlSessionTemplate" class="com.qlqn.common.datasource.DynamicSqlSessionTemplate"
+		scope="prototype">
+		<constructor-arg index="0" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!--     事务管理  -->
+    <!-- 定义单个jdbc数据源的事务管理器 -->
+	<bean id="transactionManager" class="com.qlqn.common.datasource.DynamicDataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+    
+    <!-- 以 @Transactional 标注来定义事务  -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+    <!-- 配置事务的传播特性 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="add*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="create*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="insert*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="del*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="modify*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="merge*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="remove*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="batch*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="proc*" propagation="REQUIRED" read-only="false" rollback-for="Exception"/>
+            <tx:method name="select*" read-only="true"/>
+            <tx:method name="query*" read-only="true"/>
+            <tx:method name="use*" read-only="true"/>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="count*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="list*" read-only="true"/>
+            <tx:method name="*" read-only="false" />
+        </tx:attributes>
+    </tx:advice>
+	
+	
+	 <!-- 那些类的哪些方法参与事务 -->
+    <aop:config>
+     	<aop:pointcut id="allManagerMethod" expression="(execution (* com.qlqn.*.service.*.*(..)))"/>
+        <aop:advisor pointcut-ref="allManagerMethod" advice-ref="txAdvice"/>
+    </aop:config>
+	
+<!-- 		<import resource="application-reids.xml"/> -->
+		<import resource="spring-quartz.xml"/>
+		<import resource="spring-ecache.xml"/>
+		<import resource="spring-shiro.xml"/>
+<!-- 		<import resource="applicationContext-quartz-colony.xml"/> -->
+<!-- 		<import resource="application-kafka.xml"/> -->
+<!-- 		<import resource="application-activeMq.xml"/> -->
+<!-- 		<import resource="application-rabbitMQ.xml"/> -->
+</beans>

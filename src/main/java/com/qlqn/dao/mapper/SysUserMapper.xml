@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qlqn.bean.SysUserBean">
+	<resultMap id="BaseResultMap" type="com.qlqn.bean.SysUserBean">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="account" property="account" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="private_key" property="privateKey" jdbcType="VARCHAR" />
+		<result column="password" property="password" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="modifler" property="modifler" jdbcType="VARCHAR" />
+		<result column="last_login_time" property="lastLoginTime" jdbcType="TIMESTAMP" />
+		<result column="status" property="status" jdbcType="BIGINT" />
+		<result column="role_id" property="roleId" jdbcType="BIGINT" />
+		<result column="cid" property="cid" jdbcType="VARCHAR" />
+		<result column="phone" property="phone" jdbcType="VARCHAR" />
+		<result column="email" property="email" jdbcType="VARCHAR" />
+		<result column="telephone" property="telephone" jdbcType="VARCHAR" />
+		<result column="instiution_name" property="instiutionName" jdbcType="VARCHAR" />
+		<result column="instiution_code" property="instiutionCode" jdbcType="VARCHAR" />
+		<result column="instiution_id" property="instiutionId"  jdbcType="BIGINT" />
+		<result column="is_del" property="isDel" jdbcType="VARCHAR" />
+		<result column="del_user" property="delUser" jdbcType="VARCHAR" />
+		<result column="del_time" property="delTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, account, name, password,private_key, create_time, creator,
+		modify_time, modifler, last_login_time,
+		status, role_id, cid, phone, email,
+		telephone,instiution_name,instiution_code, instiution_id, is_del,
+		del_user, del_time
+	</sql>
+
+	<select id="loginUser" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_user where account = #{account}
+		and password = #{password}
+		and is_del='0'
+	</select>
+	<select id="getfindAdmin" resultMap="BaseResultMap">
+		select u.id,u.account,u.name,u.password, u.role_id
+		from sys_user u
+		where u.creator = "0000" and u.is_del='0' limit 1
+	</select>
+
+
+	<select id="findSysUser" parameterType="Map"
+		resultType="com.qlqn.bean.SysUserListBean">
+		select * from (
+		select u.id,u.account,u.name,u.cid, u.phone, u.email,
+		u.telephone, u.instiution_name instiutionName,u.instiution_id
+		instiutionId,
+		u.create_time createTime,u.modify_time modifyTime,u.status,
+		group_concat(ur.name) roleNames,group_concat(ur.id) roleIds,ur.id rid
+		from sys_user u
+		left join sys_user_role uur on uur.uid = u.id
+		left join sys_role ur on ur.id = uur.rid
+
+		where 1=1 and u.is_del='0'
+		<if test=" null != startDate and '' != startDate">
+			and DATE_FORMAT(u.create_time,'%Y-%m-%d') >=
+			DATE_FORMAT(#{startDate},'%Y-%m-%d')
+		</if>
+		<if test=" null != endDate and '' != endDate">
+			and DATE_FORMAT(#{endDate},'%Y-%m-%d') >=
+			DATE_FORMAT(u.create_time,'%Y-%m-%d')
+		</if>
+		<if test=" null != roleId and '' != roleId">
+			and rid= #{roleId}
+		</if>
+		<if test=" null != userStatus and '' != userStatus">
+			and u.status= #{userStatus}
+		</if>
+		<if test=" null != instiutionId and '' != instiutionId">
+			and u.creator !='0000'
+			and u.instiution_id=ur.instiution_id
+			and u.instiution_id= #{instiutionId}
+		</if>
+		<if test=" null!=searchContent and ''!=searchContent">
+			and ( u.account like CONCAT('%',#{searchContent},'%')
+			or u.name like CONCAT('%',#{searchContent},'%')
+			or u.phone like CONCAT('%',#{searchContent},'%')
+			or u.email like CONCAT('%',#{searchContent},'%') )
+		</if>
+		group by u.id ORDER BY u.create_time DESC ) userList
+	</select>
+
+	<select id="findUser" parameterType="Map"
+		resultType="com.qlqn.bean.SysUserListBean">
+<!-- 		select * from ( -->
+<!-- 		select u.id,u.account,u.name,u.cid, u.phone, u.email, -->
+<!-- 		u.telephone,u.instiution_name instiutionName,u.instiution_id -->
+<!-- 		instiutionId, -->
+<!-- 		u.create_time createTime,u.modify_time modifyTime,u.status -->
+<!-- 		from sys_user u -->
+<!-- 		where 1=1 and u.is_del='0' -->
+<!-- 		<if test=" null != startDate and '' != startDate"> -->
+<!-- 			and DATE_FORMAT(u.create_time,'%Y-%m-%d') >= -->
+<!-- 			DATE_FORMAT(#{startDate},'%Y-%m-%d') -->
+<!-- 		</if> -->
+<!-- 		<if test=" null != endDate and '' != endDate"> -->
+<!-- 			and DATE_FORMAT(#{endDate},'%Y-%m-%d') >= -->
+<!-- 			DATE_FORMAT(u.create_time,'%Y-%m-%d') -->
+<!-- 		</if> -->
+<!-- 		<if test=" null != roleId and '' != roleId"> -->
+<!-- 			and rid= #{roleId} -->
+<!-- 		</if> -->
+<!-- 		<if test=" null != userStatus and '' != userStatus"> -->
+<!-- 			and u.status= #{userStatus} -->
+<!-- 		</if> -->
+<!-- 		<if test=" null != instiutionId and '' != instiutionId"> -->
+<!-- 			and u.instiution_id= #{instiutionId} -->
+<!-- 		</if> -->
+<!-- 		<if test=" null!=searchContent and ''!=searchContent"> -->
+<!-- 			and ( u.account like CONCAT('%',#{searchContent},'%') -->
+<!-- 			or u.name like CONCAT('%',#{searchContent},'%') -->
+<!-- 			or u.phone like CONCAT('%',#{searchContent},'%') -->
+<!-- 			or u.email like CONCAT('%',#{searchContent},'%') ) -->
+<!-- 		</if> -->
+<!-- 		group by u.id ORDER BY u.create_time DESC ) userList -->
+
+		select * from (
+		select u.id,u.account,u.name,u.cid, u.phone, u.email, u.telephone, u.instiution_name instiutionName,
+				u.create_time createTime,u.modify_time modifyTime,u.status,
+				group_concat(ur.name) roleNames,group_concat(ur.id) roleIds,ur.id rid
+		from sys_user u
+			left join sys_user_role uur on uur.uid = u.id
+			left join sys_role ur on ur.id = uur.rid
+			  
+			where 1=1 and u.is_del='0' 
+	    	<if test=" null != startDate and '' != startDate" >
+	    	and DATE_FORMAT(u.create_time,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')
+	    	</if>
+	    	<if test=" null != endDate and '' != endDate" >
+	    	and DATE_FORMAT(#{endDate},'%Y-%m-%d') >= DATE_FORMAT(u.create_time,'%Y-%m-%d')
+	    	</if>
+	    	<if test=" null != roleId and '' != roleId" >
+	    	and rid= #{roleId,jdbcType=BIGINT}
+	    	</if>
+	    	<if test=" null != userStatus and '' != userStatus" >
+	    	and u.status= #{userStatus,jdbcType=BIGINT}
+	    	</if>
+	    	<if test=" null != instiutionId and '' != instiutionId" >
+	    	and u.instiution_id=ur.instiution_id 
+	    	and u.instiution_id= #{instiutionId,jdbcType=BIGINT}
+	    	</if>
+	    	<if test=" null!=searchContent and ''!=searchContent" >
+	    	     and  ( u.account like CONCAT('%',#{searchContent},'%')
+				 or  u.name like CONCAT('%',#{searchContent},'%')
+				 or  u.phone like CONCAT('%',#{searchContent},'%')
+				 or  u.email like CONCAT('%',#{searchContent},'%') )
+	    	</if> group by u.id ORDER BY u.create_time DESC ) userList
+
+
+
+	</select>
+	<!-- 获取用户菜单权限 -->
+	<select id="findUserMenuPermission" resultType="com.qlqn.bean.SysPermissionBean">
+		SELECT
+		d.ID id,
+		d.MYSELF_ID myselfId,
+		d.NAME name,
+		d.TYPE type,
+		d.PATH_URL pathUrl,
+		d.ICON_URL iconUrl,
+		d.STATE state,
+		d.PARENT_ID parentId
+		FROM sys_user_role a , sys_role as b , sys_role_permission as c ,
+		sys_permission as d
+		WHERE a.rid = b.ID AND b.ID = c.rid AND c.pid = d.ID AND d.STATE = 1 AND
+		d.TYPE in(1,3)
+		AND b.is_del='0' AND d.STATE='1' AND a.uid = #{id}
+		ORDER BY d.LEVEL,d.PARENT_ID,d.SEQUENCE_NUM
+	</select>
+	<!-- 获取用户菜单权限 -->
+	<!-- <select id="findUserMenuPermission" resultType="com.ccx.antifraud.bean.sys.SysPermissionBean"> -->
+	<!-- SELECT -->
+	<!-- d.ID id, -->
+	<!-- d.MYSELF_ID myselfId, -->
+	<!-- d.NAME name, -->
+	<!-- d.TYPE type, -->
+	<!-- d.PATH_URL pathUrl, -->
+	<!-- d.ICON_URL iconUrl, -->
+	<!-- d.STATE state, -->
+	<!-- d.PARENT_ID parentId -->
+	<!-- FROM sys_user_role a , sys_role as b , sys_role_permission as c , sys_permission 
+		as d -->
+	<!-- left join (select id,instiution_id from sys_user where id =#{id}) u -->
+	<!-- WHERE a.rid = b.ID AND b.ID = c.rid AND c.pid = d.ID AND d.STATE = 
+		1 AND d.TYPE in(1,3) -->
+	<!-- AND b.is_del='0' AND d.STATE='1' -->
+	<!-- AND u.instiution_id = b.instiution_id -->
+	<!-- AND u.instiution_id = d.INSTIUTION_ID -->
+	<!-- AND a.uid = u.id -->
+	<!-- ORDER BY d.LEVEL,d.PARENT_ID,d.SEQUENCE_NUM -->
+	<!-- </select> -->
+
+	<select id="findUserStatusByUserIdList" resultType="java.lang.String">
+		select status from sys_user where id in
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+	<select id="findAccountByInsId" parameterType="Map"
+		resultType="com.qlqn.bean.SysUserBean">
+		select u.ID, u.ACCOUNT from sys_user u
+		where 1=1
+		<if test=" null != instiutionId and '' != instiutionId">
+			and u.instiution_id =#{instiutionId,jdbcType=BIGINT}
+		</if>
+		ORDER BY u.create_time DESC
+	</select>
+	<select id="selectByPrimaryKey" parameterType="java.lang.Long"
+		resultType="com.qlqn.bean.SysUserListBean">
+		select u.id,u.account,u.name,u.cid, u.phone, u.email, u.telephone,
+		u.instiution_name instiutionName, u.instiution_id instiutionId,
+		u.create_time createTime,u.last_login_time lastLoginTime,u.status ,
+		group_concat(ur.name) roleNames,group_concat(ur.id) roleIds
+		from
+		sys_user u
+		left join sys_user_role uur on uur.uid = u.id
+		left join sys_role ur on ur.id = uur.rid
+		where u.id = #{id} and u.is_del='0'
+	</select>
+
+	<select id="selectByPrimaryKeyForPw" parameterType="java.lang.Long"
+		resultType="com.qlqn.bean.SysUserBean">
+		select u.id,u.account,u.name,u.password
+		from sys_user u
+		where u.id = #{id} and u.is_del='0'
+	</select>
+	<!-- 注销删除后用户名不可复用 -->
+	<select id="getUserByName" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select COUNT(*)
+		from sys_user
+		where account = #{account}
+	</select>
+	<select id="getUserByMobile" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select COUNT(*)
+		from sys_user
+		where phone = #{phone} and is_del='0'
+	</select>
+	<select id="selectByNameOrMobile" parameterType="java.lang.String"
+		resultType="com.qlqn.bean.SysUserBean">
+		select id,account,name,password,phone,instiution_id instiutionId,private_key
+		privateKey,
+		IFNULL(status,0) status
+		from sys_user
+		where 1=1
+		and (phone = #{accountOrMobile}
+		or account = #{accountOrMobile})
+		and is_del='0'
+	</select>
+	<!-- 0:有效，1:冻结 2：注销 锁定：3 -->
+	<update id="changeUserStatus" parameterType="java.lang.String">
+		update sys_user SET status=#{status}
+		where account = #{account} and is_del='0'
+	</update>
+	<update id="deleteByPrimaryKey" parameterType="java.lang.Long">
+		update sys_user SET is_del='1'
+		where id = #{id} and is_del='0'
+	</update>
+	<insert id="insert" parameterType="com.qlqn.bean.SysUserBean"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into sys_user (id, account, name, private_key,
+		password, create_time, creator,
+		modify_time, modifler, last_login_time,status, role_id,
+		cid, phone, email,
+		telephone, instiution_name, instiution_code,
+		instiution_id, is_del, del_user,
+		del_time)
+		values (#{id}, #{account}, #{name} , #{privateKey},
+		#{password}, #{createTime}, #{creator},
+		#{modifyTime}, #{modifler}, #{lastLoginTime}, #{status}, #{roleId},
+		#{cid}, #{phone}, #{email},
+		#{telephone}, #{instiutionName}, #{instiutionCode},
+		#{instiutionId}, #{isDel}, #{delUser},
+		#{delTime})
+	</insert>
+	<insert id="insertSelective" parameterType="com.qlqn.bean.SysUserBean"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into sys_user
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="account != null">
+				account,
+			</if>
+			<if test="name != null">
+				name,
+			</if>
+			<if test="privateKey != null">
+				private_key,
+			</if>
+			<if test="password != null">
+				password,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="creator != null">
+				creator,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="modifler != null">
+				modifler,
+			</if>
+			<if test="lastLoginTime != null">
+				last_login_time,
+			</if>
+			<if test="status != null">
+				status,
+			</if>
+			<if test="roleId != null">
+				role_id,
+			</if>
+			<if test="cid != null">
+				cid,
+			</if>
+			<if test="phone != null">
+				phone,
+			</if>
+			<if test="email != null">
+				email,
+			</if>
+			<if test="telephone != null">
+				telephone,
+			</if>
+			<if test="instiutionName != null">
+				instiution_name,
+			</if>
+			<if test="instiutionCode != null">
+				instiution_code,
+			</if>
+			<if test="instiutionId != null">
+				instiution_id,
+			</if>
+			<if test="isDel != null">
+				is_del,
+			</if>
+			<if test="delUser != null">
+				del_user,
+			</if>
+			<if test="delTime != null">
+				del_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id},
+			</if>
+			<if test="account != null">
+				#{account},
+			</if>
+			<if test="name != null">
+				#{name},
+			</if>
+			<if test="privateKey != null">
+				#{privateKey},
+			</if>
+			<if test="password != null">
+				#{password},
+			</if>
+			<if test="createTime != null">
+				#{createTime},
+			</if>
+			<if test="creator != null">
+				#{creator},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime},
+			</if>
+			<if test="modifler != null">
+				#{modifler},
+			</if>
+			<if test="lastLoginTime != null">
+				#{lastLoginTime},
+			</if>
+			<if test="status != null">
+				#{status},
+			</if>
+			<if test="roleId != null">
+				#{roleId},
+			</if>
+			<if test="cid != null">
+				#{cid},
+			</if>
+			<if test="phone != null">
+				#{phone},
+			</if>
+			<if test="email != null">
+				#{email},
+			</if>
+			<if test="telephone != null">
+				#{telephone},
+			</if>
+			<if test="instiutionName != null">
+				#{instiutionName},
+			</if>
+			<if test="instiutionId != null">
+				#{instiutionId},
+			</if>
+			<if test="isDel != null">
+				#{isDel},
+			</if>
+			<if test="delUser != null">
+				#{delUser},
+			</if>
+			<if test="delTime != null">
+				#{delTime},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.qlqn.bean.SysUserBean">
+		update sys_user
+		<set>
+			<if test="account != null">
+				account = #{account},
+			</if>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="privateKey != null">
+				private_key = #{privateKey},
+			</if>
+			<if test="password != null">
+				password = #{password},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime},
+			</if>
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime},
+			</if>
+			<if test="modifler != null">
+				modifler = #{modifler},
+			</if>
+			<if test="lastLoginTime != null">
+				last_login_time = #{lastLoginTime},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="roleId != null">
+				role_id = #{roleId},
+			</if>
+			<if test="cid != null">
+				cid = #{cid},
+			</if>
+			<if test="phone != null">
+				phone = #{phone},
+			</if>
+			<if test="email != null">
+				email = #{email},
+			</if>
+			<if test="telephone != null">
+				telephone = #{telephone},
+			</if>
+			<if test="instiutionName != null">
+				instiution_name = #{instiutionName},
+			</if>
+			<if test="instiutionCode != null">
+				instiution_code = #{instiutionCode},
+			</if>
+			<if test="instiutionId != null">
+				instiution_id = #{instiutionId},
+			</if>
+			<if test="isDel != null">
+				is_del = #{isDel},
+			</if>
+			<if test="delUser != null">
+				del_user = #{delUser},
+			</if>
+			<if test="delTime != null">
+				del_time = #{delTime},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.qlqn.bean.SysUserBean">
+		update sys_user
+		set account = #{account},
+		name = #{name},
+		private_key = #{privateKey},
+		password = #{password},
+		create_time = #{createTime},
+		creator = #{creator},
+		modify_time = #{modifyTime},
+		modifler = #{modifler},
+		last_login_time = #{lastLoginTime},
+		status = #{status},
+		role_id = #{roleId},
+		cid = #{cid},
+		phone = #{phone},
+		email = #{email},
+		telephone = #{telephone},
+		instiution_name = #{instiutionName},
+		instiution_code = #{instiutionCode},
+		instiution_id = #{instiutionId},
+		is_del = #{isDel},
+		del_user = #{delUser},
+		del_time = #{delTime}
+		where id = #{id}
+	</update>
+</mapper>

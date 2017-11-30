@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/cache
+       http://www.springframework.org/schema/cache/spring-cache.xsd">
+       
+      
+     <!-- 会话Session ID生成器 -->
+	<bean id="sessionIdGeneratorEcahe" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator" />
+       
+    <!-- shiro的Ehcache实现的缓存管理器 -->
+   	<bean id="shiroCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<property name="cacheManagerConfigFile" value="classpath:ehcache.xml" />  
+	</bean>
+	
+	<!--spring 注入-->
+   	<bean id="cacheManagerSession" class="com.qlqn.shiro.CacheManagerSession" >
+	 <property name="cacheManager" ref="shiroCacheManager"/>
+	</bean>
+	
+	<!--CacheSession 管理 -->
+	<bean id="cacheSessionDAO" class="com.qlqn.shiro.CacheSessionDAO">
+		 <property name="sessionIdGenerator" ref="sessionIdGeneratorEcahe"/>
+		 <property name="cacheManager" ref="shiroCacheManager" />
+	</bean>
+	
+    <!-- custom shiro session listener -->
+    <bean id="customSessionListener" class="com.qlqn.shiro.CacheCustomSessionListener"></bean>
+	
+	<!-- 会话Cookie模板 -->
+    <bean id="sessionIdCookieEhCache" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg name="name"  value="FOOTUP_SESSION_ID"/>
+        <property name="httpOnly" value="true"/>
+	    <!-- 单位是秒   -1， 代表的是一次会话， 跟session一样， 当会话结束后就会删除掉 -->
+        <property name="maxAge" value="-1"/>
+    </bean>
+	
+    <bean id="sessionManagerEhCache" class="com.qlqn.shiro.DefaultWebSessionManagerOverride">
+    	<!-- 相隔多久检查一次session的有效性 -->
+		<property name="sessionValidationInterval" value="1800000" />
+    	<!-- Session 有效时间 单位是毫秒    -->
+        <property name="globalSessionTimeout" value="1800000"/>
+        <property name="deleteInvalidSessions" value="true"/>
+         <property name="sessionDAO" ref="cacheSessionDAO"/>
+         <!-- session 监听，可以多个。 -->
+	   	 <property name="sessionListeners">
+	       <list>
+	           <ref bean="customSessionListener"/>
+	       </list>
+	  	 </property>
+        <property name="sessionIdCookieEnabled" value="true"/>
+        <property name="sessionIdCookie" ref="sessionIdCookieEhCache"/>
+    </bean>
+    
+</beans>
+    
